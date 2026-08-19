@@ -226,21 +226,29 @@ export default function Home({
           <div className="glow glow-hero-2"></div>
           <div className="container hero-container">
             <div className="hero-content">
-              <h1>{heroContent?.title || artist?.name || "Vida Brown"}</h1>
-              <h2>{heroContent?.subtitle || artist?.title || "Singer • Songwriter • Producer"}</h2>
-              <p>{heroContent?.body || artist?.bio || "Malawian artist creating music, arts, and culture content."}</p>
-              <div className="hero-buttons">
-                <a href={heroContent?.cta_primary_url || artist?.spotify_url || "https://open.spotify.com/artist/3ihbWDeubJO4XmeZlCGqZL"} target="_blank" className="btn btn-primary">
+              <h1>{heroContent?.title || artist?.name || ""}</h1>
+              <h2>{heroContent?.subtitle || artist?.title || ""}</h2>
+              <p>{heroContent?.body || artist?.bio || ""}</p>
+              {(heroContent?.cta_primary_url || artist?.spotify_url) && (
+                <a href={heroContent?.cta_primary_url || artist?.spotify_url || ""} target="_blank" className="btn btn-primary">
                   <span className="material-symbols-outlined">music_note</span> {heroContent?.cta_primary_label || "Listen on Spotify"}
                 </a>
-                <a href={heroContent?.cta_secondary_url || artist?.youtube_url || "https://www.youtube.com/@VidaBrownOfficial"} target="_blank" className="btn btn-outline">
+              )}
+              {(heroContent?.cta_secondary_url || artist?.youtube_url) && (
+                <a href={heroContent?.cta_secondary_url || artist?.youtube_url || ""} target="_blank" className="btn btn-outline">
                   <span className="material-symbols-outlined">subscriptions</span> {heroContent?.cta_secondary_label || "YouTube Channel"}
                 </a>
-              </div>
+              )}
             </div>
             <div className="hero-image">
               <div className="hero-image-wrapper">
-                <img src={heroContent?.image_url || artist?.hero_image_url || "/Image Jul 22, 2026, 12_54_27 AM.png"} alt="Artist portrait" />
+                {heroContent?.image_url || artist?.hero_image_url ? (
+                  <img src={heroContent?.image_url || artist?.hero_image_url || ""} alt="Artist portrait" />
+                ) : (
+                  <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-secondary)", fontSize: 14 }}>
+                    No image uploaded
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -253,7 +261,7 @@ export default function Home({
               <div>
                 <span className="section-tag">About</span>
                 <h2>{aboutContent?.title || "About"}</h2>
-                <p>{aboutContent?.body || artist?.bio}</p>
+                <p>{aboutContent?.body || artist?.bio || ""}</p>
               </div>
             </div>
           </div>
@@ -296,31 +304,43 @@ export default function Home({
               </div>
             )}
 
+            {!featuredVideo && (
+              <div className="glass-card" style={{ padding: 48, textAlign: "center" }}>
+                <p style={{ color: "var(--text-secondary)" }}>No videos yet. Add videos from the admin panel.</p>
+              </div>
+            )}
+
             {/* Trending grid (3 videos) */}
-            <div className="video-grid">
-              {trendingVideos.map((video) => (
-                <div key={video.id} className="glass-card video-card">
-                  <div className="video-wrapper">
-                    <iframe src={video.embed_url} title={video.title} style={{ border: 0 }} allowFullScreen loading="lazy" />
-                  </div>
-                  <div className="video-card-info">
-                    <div className="badges">
-                      <span className={`badge ${video.category === "REACTION" ? "badge-secondary" : "badge-primary"}`}>
-                        {video.category}
-                      </span>
-                      <span className="meta-time">• {video.duration}</span>
+            {trendingVideos.length > 0 ? (
+              <div className="video-grid">
+                {trendingVideos.map((video) => (
+                  <div key={video.id} className="glass-card video-card">
+                    <div className="video-wrapper">
+                      <iframe src={video.embed_url} title={video.title} style={{ border: 0 }} allowFullScreen loading="lazy" />
                     </div>
-                    <h4>{video.title}</h4>
-                    <p>{video.description}</p>
-                    <div className="video-stats">
-                      <span>{formatCount(video.views)} views</span>
-                      <span>•</span>
-                      <span>{video.upload_date}</span>
+                    <div className="video-card-info">
+                      <div className="badges">
+                        <span className={`badge ${video.category === "REACTION" ? "badge-secondary" : "badge-primary"}`}>
+                          {video.category}
+                        </span>
+                        <span className="meta-time">• {video.duration}</span>
+                      </div>
+                      <h4>{video.title}</h4>
+                      <p>{video.description}</p>
+                      <div className="video-stats">
+                        <span>{formatCount(video.views)} views</span>
+                        <span>•</span>
+                        <span>{video.upload_date}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="glass-card" style={{ padding: 48, textAlign: "center" }}>
+                <p style={{ color: "var(--text-secondary)" }}>No videos yet. Add videos from the admin panel.</p>
+              </div>
+            )}
           </div>
         </section>
 
@@ -361,6 +381,12 @@ export default function Home({
                     <span><span className="material-symbols-outlined">schedule</span> {showVideos[0].duration}</span>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {showVideos.length === 0 && (
+              <div className="glass-card" style={{ padding: 48, textAlign: "center" }}>
+                <p style={{ color: "var(--text-secondary)" }}>No shows yet. Add videos from the admin panel.</p>
               </div>
             )}
 
@@ -413,11 +439,17 @@ export default function Home({
               </div>
             </div>
             <div className="gallery-grid">
-              {gallery.map((img) => (
-                <div key={img.id} className="item">
-                  <img src={img.url} alt={img.alt_text} loading="lazy" />
+              {gallery.length > 0 ? (
+                gallery.map((img) => (
+                  <div key={img.id} className="item">
+                    <img src={img.url} alt={img.alt_text} loading="lazy" />
+                  </div>
+                ))
+              ) : (
+                <div className="glass-card" style={{ padding: 48, textAlign: "center", gridColumn: "1 / -1" }}>
+                  <p style={{ color: "var(--text-secondary)" }}>No gallery images yet. Upload images from the admin panel.</p>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </section>
@@ -455,10 +487,14 @@ export default function Home({
                 <div>
                   <div className="music-header">
                     <div>
-                      <h3>{artist?.name || "Vida Brown"}</h3>
-                      <p style={{ color: "var(--text-secondary)" }}>{artist?.title}</p>
+                      <h3>{artist?.name || "Artist Name"}</h3>
+                      <p style={{ color: "var(--text-secondary)" }}>{artist?.title || ""}</p>
                       <p style={{ color: "var(--text-secondary)", fontSize: 14, marginTop: 8 }}>
-                        Malawian Artist • <span>{artist?.followers || 0}</span> Followers
+                        {artist?.name ? (
+                          <>Malawian Artist • <span>{artist?.followers || 0}</span> Followers</>
+                        ) : (
+                          <>Add artist details from the admin panel</>
+                        )}
                       </p>
                     </div>
                     <div className="music-actions">
@@ -468,24 +504,30 @@ export default function Home({
                     </div>
                   </div>
                   <div className="track-list">
-                    {tracks.map((track) => (
-                      <div key={track.id} className="track-item">
-                        <div className="track-info">
-                          <span className="track-num">{String(track.track_number).padStart(2, "0")}</span>
-                          <div>
-                            <div className="track-title">{track.title}</div>
-                            <div className="track-artist">
-                              {track.artist_name}{track.featured_artist ? ` feat. ${track.featured_artist}` : ""}{track.year ? ` • ${track.year}` : ""}
+                    {tracks.length > 0 ? (
+                      tracks.map((track) => (
+                        <div key={track.id} className="track-item">
+                          <div className="track-info">
+                            <span className="track-num">{String(track.track_number).padStart(2, "0")}</span>
+                            <div>
+                              <div className="track-title">{track.title}</div>
+                              <div className="track-artist">
+                                {track.artist_name}{track.featured_artist ? ` feat. ${track.featured_artist}` : ""}{track.year ? ` • ${track.year}` : ""}
+                              </div>
                             </div>
                           </div>
+                          <div className="track-meta">
+                            <span>{formatCount(track.streams)} streams</span>
+                            <span>{track.track_type}</span>
+                            <button className="track-more"><span className="material-symbols-outlined">more_horiz</span></button>
+                          </div>
                         </div>
-                        <div className="track-meta">
-                          <span>{formatCount(track.streams)} streams</span>
-                          <span>{track.track_type}</span>
-                          <button className="track-more"><span className="material-symbols-outlined">more_horiz</span></button>
-                        </div>
+                      ))
+                    ) : (
+                      <div style={{ padding: 24, textAlign: "center", color: "var(--text-secondary)" }}>
+                        No tracks yet. Add tracks from the admin panel.
                       </div>
-                    ))}
+                    )}
                   </div>
                   <div className="social-buttons">
                     <a href="https://www.youtube.com/@VidaBrownOfficial" target="_blank" className="btn btn-outline" style={{ flex: 1, justifyContent: "center", color: "#f87171" }}>

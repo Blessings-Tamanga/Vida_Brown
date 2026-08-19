@@ -722,3 +722,101 @@ html:not(.dark) .track-more { background: rgba(0,0,0,0.05); }
                 width: 100%;
             }
         }
+        .toast-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            pointer-events: none;
+        }
+
+        .toast {
+            padding: 16px 24px;
+            border-radius: 12px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: toastSlideIn 0.3s ease;
+            min-width: 280px;
+            max-width: 400px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            pointer-events: auto;
+        }
+
+        .toast-success { border-left: 4px solid var(--secondary); }
+        .toast-error { border-left: 4px solid #f87171; }
+        .toast-info { border-left: 4px solid var(--primary); }
+
+        .toast-message {
+            flex: 1;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .toast-close {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 18px;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: color 0.2s, background 0.2s;
+        }
+
+        .toast-close:hover {
+            color: var(--text-primary);
+            background: rgba(255,255,255,0.1);
+        }
+
+        @keyframes toastSlideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes toastFadeOut {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(100%); }
+        }
+
+        .toast-exiting {
+            animation: toastFadeOut 0.3s ease forwards;
+        }
+
+        .upload-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .upload-btn:hover {
+            background: rgba(255,255,255,0.1);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .upload-btn input[type="file"] {
+            display: none;
+        }

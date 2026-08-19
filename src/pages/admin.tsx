@@ -86,6 +86,29 @@ async function revalidateHome() {
   }
 }
 
+async function uploadFile(file: File): Promise<string> {
+  const dataUrl = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+  const token = localStorage.getItem("admin_token");
+  const res = await fetch("/api/admin/upload", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-admin-token": token || "",
+    },
+    body: JSON.stringify({ dataUrl, filename: file.name }),
+  });
+
+  const result = await res.json();
+  if (!res.ok) throw new Error(result.detail || "Upload failed");
+  return result.url;
+}
+
 // ---------- Main Admin Component ----------
 export default function Admin() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -99,6 +122,15 @@ export default function Admin() {
   const [siteContent, setSiteContent] = useState<Record<string, SiteContent>>({});
   const [activeTab, setActiveTab] = useState<"videos" | "tracks" | "gallery" | "artist" | "hero" | "about">("videos");
   const [loading, setLoading] = useState(false);
+  const [toasts, setToasts] = useState<{ id: number; message: string; type: "success" | "error" | "info" }[]>([]);
+
+  const addToast = (message: string, type: "success" | "error" | "info" = "info") => {
+    const id = Date.now();
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 4000);
+  };
 
   // Auth check
   useEffect(() => {
@@ -178,8 +210,9 @@ export default function Admin() {
       await action();
       await revalidateHome();
       await fetchData();
+      addToast("Saved successfully", "success");
     } catch (error) {
-      alert(error instanceof Error ? error.message : "Action failed");
+      addToast(error instanceof Error ? error.message : "Action failed", "error");
     }
   };
 
@@ -212,6 +245,14 @@ export default function Admin() {
       <Head>
         <title>Admin | Vida Brown</title>
       </Head>
+      <div className="toast-container">
+        {toasts.map((toast) => (
+          <div key={toast.id} className={`toast toast-${toast.type}`}>
+            <span className="toast-message">{toast.message}</span>
+            <button className="toast-close" onClick={() => setToasts((prev) => prev.filter((t) => t.id !== toast.id))}>×</button>
+          </div>
+        ))}
+      </div>
       <div className="admin-layout" style={{ display: "grid", gridTemplateColumns: "260px 1fr", minHeight: "100vh" }}>
         <aside className="admin-sidebar">
           <div className="logo" style={{ padding: "0 12px 24px", borderBottom: "1px solid var(--glass-border)", marginBottom: 16 }}>
@@ -231,10 +272,10 @@ export default function Admin() {
           {loading && <p>Loading…</p>}
           {activeTab === "videos" && <VideoManager videos={videos} runAction={runAction} />}
           {activeTab === "tracks" && <TrackManager tracks={tracks} runAction={runAction} />}
-          {activeTab === "gallery" && <GalleryManager gallery={gallery} runAction={runAction} />}
-          {activeTab === "artist" && <ArtistEditor artist={artist} runAction={runAction} />}
-          {activeTab === "hero" && <SiteContentEditor slug="hero" content={siteContent["hero"] || { slug: "hero", title: "", subtitle: "", body: "", image_url: "", cta_primary_label: "", cta_primary_url: "", cta_secondary_label: "", cta_secondary_url: "" }} runAction={runAction} />}
-          {activeTab === "about" && <SiteContentEditor slug="about" content={siteContent["about"] || { slug: "about", title: "", body: "" }} runAction={runAction} />}
+          {activeTab === "gallery" && <GalleryManager gallery={gallery} runAction={runAction} addToast={addToast} />}
+          {activeTab === "artist" && <ArtistEditor artist={artist} runAction={runAction} addToast={addToast} />}
+          {activeTab === "hero" && <SiteContentEditor slug="hero" content={siteContent["hero"] || { slug: "hero", title: "", subtitle: "", body: "", image_url: "", cta_primary_label: "", cta_primary_url: "", cta_secondary_label: "", cta_secondary_url: "" }} runAction={runAction} addToast={addToast} />}
+          {activeTab === "about" && <SiteContentEditor slug="about" content={siteContent["about"] || { slug: "about", title: "", body: "" }} runAction={runAction} addToast={addToast} />}
         </main>
       </div>
     </>
@@ -478,11 +519,22 @@ function TrackManager({ tracks, runAction }: { tracks: TrackItem[]; runAction: (
 }
 
 // ---------- Gallery Manager ----------
-function GalleryManager({ gallery, runAction }: { gallery: GalleryItem[]; runAction: (fn: () => Promise<void>) => void }) {
+function GalleryManager({ gallery, runAction, addToast }: { gallery: GalleryItem[]; runAction: (fn: () => Promise<void>) => void; addToast: (message: string, type: "success" | "error" | "info") => void }) {
   const [editing, setEditing] = useState<GalleryItem | null>(null);
   const [form, setForm] = useState<Partial<GalleryItem>>({ url: "", alt_text: "", order: 0 });
 
   const resetForm = () => setForm({ url: "", alt_text: "", order: 0 });
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const url = await uploadFile(file);
+      setForm({ ...form, url });
+    } catch (err) {
+      addToast(err instanceof Error ? err.message : "Upload failed", "error");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -553,7 +605,13 @@ function GalleryManager({ gallery, runAction }: { gallery: GalleryItem[]; runAct
       <form onSubmit={handleSubmit} className="glass-card" style={{ padding: 32, marginBottom: 32 }}>
         <h3>{editing ? "Edit Image" : "Add Image"}</h3>
         <div style={{ display: "grid", gap: 16, marginTop: 16 }}>
-          <input className="admin-input" placeholder="Image URL" value={form.url || ""} onChange={e => setForm({ ...form, url: e.target.value })} required />
+          <div style={{ display: "flex", gap: 8 }}>
+            <input className="admin-input" placeholder="Image URL" value={form.url || ""} onChange={e => setForm({ ...form, url: e.target.value })} required style={{ flex: 1 }} />
+            <label className="upload-btn">
+              <input type="file" accept="image/*" onChange={handleImageUpload} />
+              Upload
+            </label>
+          </div>
           <input className="admin-input" placeholder="Alt Text" value={form.alt_text || ""} onChange={e => setForm({ ...form, alt_text: e.target.value })} required />
           <input className="admin-input" type="number" placeholder="Display Order" value={form.order} onChange={e => setForm({ ...form, order: +e.target.value })} />
           <div style={{ display: "flex", gap: 12 }}>
@@ -580,7 +638,7 @@ function GalleryManager({ gallery, runAction }: { gallery: GalleryItem[]; runAct
 }
 
 // ---------- Artist Editor ----------
-function ArtistEditor({ artist, runAction }: { artist: ArtistProfile | null; runAction: (fn: () => Promise<void>) => void }) {
+function ArtistEditor({ artist, runAction, addToast }: { artist: ArtistProfile | null; runAction: (fn: () => Promise<void>) => void; addToast: (message: string, type: "success" | "error" | "info") => void }) {
   const [form, setForm] = useState<ArtistProfile>(artist || {
     id: 0, name: "", title: "", bio: "", followers: 0,
     hero_image_url: "", spotify_url: "", youtube_url: "", instagram_url: ""
@@ -591,6 +649,17 @@ function ArtistEditor({ artist, runAction }: { artist: ArtistProfile | null; run
     if (artist) setForm(artist);
   }, [artist]);
   /* eslint-enable react-hooks/set-state-in-effect */
+
+  const handleHeroUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const url = await uploadFile(file);
+      setForm({ ...form, hero_image_url: url });
+    } catch (err) {
+      addToast(err instanceof Error ? err.message : "Upload failed", "error");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -609,23 +678,29 @@ function ArtistEditor({ artist, runAction }: { artist: ArtistProfile | null; run
   return (
     <form onSubmit={handleSubmit} className="glass-card" style={{ padding: 32 }}>
       <h2>Artist Profile</h2>
-      <div style={{ display: "grid", gap: 16, marginTop: 16 }}>
-        <input className="admin-input" placeholder="Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
-        <input className="admin-input" placeholder="Title" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} />
-        <textarea className="admin-input" placeholder="Bio" value={form.bio} onChange={e => setForm({ ...form, bio: e.target.value })} />
-        <input className="admin-input" type="number" placeholder="Followers" value={form.followers} onChange={e => setForm({ ...form, followers: +e.target.value })} />
-        <input className="admin-input" placeholder="Hero Image URL" value={form.hero_image_url || ""} onChange={e => setForm({ ...form, hero_image_url: e.target.value })} />
-        <input className="admin-input" placeholder="Spotify URL" value={form.spotify_url || ""} onChange={e => setForm({ ...form, spotify_url: e.target.value })} />
-        <input className="admin-input" placeholder="YouTube URL" value={form.youtube_url || ""} onChange={e => setForm({ ...form, youtube_url: e.target.value })} />
-        <input className="admin-input" placeholder="Instagram URL" value={form.instagram_url || ""} onChange={e => setForm({ ...form, instagram_url: e.target.value })} />
-        <button type="submit" className="btn btn-primary">Save Artist</button>
-      </div>
+        <div style={{ display: "grid", gap: 16, marginTop: 16 }}>
+          <input className="admin-input" placeholder="Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
+          <input className="admin-input" placeholder="Title" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} />
+          <textarea className="admin-input" placeholder="Bio" value={form.bio} onChange={e => setForm({ ...form, bio: e.target.value })} />
+          <input className="admin-input" type="number" placeholder="Followers" value={form.followers} onChange={e => setForm({ ...form, followers: +e.target.value })} />
+          <div style={{ display: "flex", gap: 8 }}>
+            <input className="admin-input" placeholder="Hero Image URL" value={form.hero_image_url || ""} onChange={e => setForm({ ...form, hero_image_url: e.target.value })} style={{ flex: 1 }} />
+            <label className="upload-btn">
+              <input type="file" accept="image/*" onChange={handleHeroUpload} />
+              Upload
+            </label>
+          </div>
+          <input className="admin-input" placeholder="Spotify URL" value={form.spotify_url || ""} onChange={e => setForm({ ...form, spotify_url: e.target.value })} />
+          <input className="admin-input" placeholder="YouTube URL" value={form.youtube_url || ""} onChange={e => setForm({ ...form, youtube_url: e.target.value })} />
+          <input className="admin-input" placeholder="Instagram URL" value={form.instagram_url || ""} onChange={e => setForm({ ...form, instagram_url: e.target.value })} />
+          <button type="submit" className="btn btn-primary">Save Artist</button>
+        </div>
     </form>
   );
 }
 
 // ---------- Site Content Editor (Hero / About) ----------
-function SiteContentEditor({ slug, content, runAction }: { slug: string; content: SiteContent; runAction: (fn: () => Promise<void>) => void }) {
+function SiteContentEditor({ slug, content, runAction, addToast }: { slug: string; content: SiteContent; runAction: (fn: () => Promise<void>) => void; addToast: (message: string, type: "success" | "error" | "info") => void }) {
   const [form, setForm] = useState<SiteContent>(content);
 
   /* eslint-disable react-hooks/set-state-in-effect */
@@ -633,6 +708,17 @@ function SiteContentEditor({ slug, content, runAction }: { slug: string; content
     setForm(content);
   }, [content]);
   /* eslint-enable react-hooks/set-state-in-effect */
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const url = await uploadFile(file);
+      setForm({ ...form, image_url: url });
+    } catch (err) {
+      addToast(err instanceof Error ? err.message : "Upload failed", "error");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -657,7 +743,13 @@ function SiteContentEditor({ slug, content, runAction }: { slug: string; content
             <input className="admin-input" placeholder="Title" value={form.title || ""} onChange={e => setForm({ ...form, title: e.target.value })} />
             <input className="admin-input" placeholder="Subtitle" value={form.subtitle || ""} onChange={e => setForm({ ...form, subtitle: e.target.value })} />
             <textarea className="admin-input" placeholder="Body" value={form.body || ""} onChange={e => setForm({ ...form, body: e.target.value })} />
-            <input className="admin-input" placeholder="Image URL" value={form.image_url || ""} onChange={e => setForm({ ...form, image_url: e.target.value })} />
+            <div style={{ display: "flex", gap: 8 }}>
+              <input className="admin-input" placeholder="Image URL" value={form.image_url || ""} onChange={e => setForm({ ...form, image_url: e.target.value })} style={{ flex: 1 }} />
+              <label className="upload-btn">
+                <input type="file" accept="image/*" onChange={handleImageUpload} />
+                Upload
+              </label>
+            </div>
             <input className="admin-input" placeholder="Primary CTA Label" value={form.cta_primary_label || ""} onChange={e => setForm({ ...form, cta_primary_label: e.target.value })} />
             <input className="admin-input" placeholder="Primary CTA URL" value={form.cta_primary_url || ""} onChange={e => setForm({ ...form, cta_primary_url: e.target.value })} />
             <input className="admin-input" placeholder="Secondary CTA Label" value={form.cta_secondary_label || ""} onChange={e => setForm({ ...form, cta_secondary_label: e.target.value })} />
