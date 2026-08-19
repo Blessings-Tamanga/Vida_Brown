@@ -23,8 +23,8 @@ export default function NewsletterPage() {
 
       setStatus("Subscribed successfully! 🎉");
       setEmail("");
-    } catch (error: any) {
-      setStatus(error.message || "Subscription failed");
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Subscription failed");
     }
   };
 

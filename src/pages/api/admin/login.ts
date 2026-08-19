@@ -17,4 +17,4 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!token) return res.status(500).json({ detail: "Server config error: ADMIN_TOKEN not set" });
 
   res.status(200).json({ token });
-}
+}   

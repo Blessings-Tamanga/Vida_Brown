@@ -18,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await db.execute(
       `INSERT INTO tracks (track_number, title, artist_name, featured_artist, year, streams, track_type, artist_id)
        VALUES (?,?,?,?,?,?,?,?)`,
-      [track_number, title, artist_name, featured_artist || null, year || null, streams, track_type, artist_id]
+      [track_number, title, artist_name, featured_artist || null, year || null, streams || 0, track_type, artist_id || null]
     );
     return res.status(201).json({ success: true });
   }

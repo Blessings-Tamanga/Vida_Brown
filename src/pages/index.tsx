@@ -154,8 +154,8 @@ export default function Home({
       if (!res.ok) throw new Error(data.detail || "Error");
       setSubStatus("Subscribed successfully! 🎉");
       setEmail("");
-    } catch (err: any) {
-      setSubStatus(err.message);
+    } catch (err) {
+      setSubStatus(err instanceof Error ? err.message : "Subscription failed");
     }
   };
 

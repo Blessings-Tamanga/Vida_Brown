@@ -22,8 +22,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         await db.execute("UPDATE gallery_images SET is_active = 0 WHERE id = ?", [id]);
         return res.json({ deactivated: true });
       }
-    } catch (error: any) {
-      return res.status(500).json({ detail: error.message });
+    } catch (error) {
+      return res.status(500).json({ detail: error instanceof Error ? error.message : "Unknown error" });
     }
   }
 
@@ -32,11 +32,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       await db.execute(
         `UPDATE gallery_images SET url=?, alt_text=?, "order"=?, is_active=? WHERE id=?`,
-        [url, alt_text, order, is_active, id]
+        [url || null, alt_text || null, order || 0, is_active ?? 1, id]
       );
       return res.json({ success: true });
-    } catch (error: any) {
-      return res.status(500).json({ detail: error.message });
+    } catch (error) {
+      return res.status(500).json({ detail: error instanceof Error ? error.message : "Unknown error" });
     }
   }
 

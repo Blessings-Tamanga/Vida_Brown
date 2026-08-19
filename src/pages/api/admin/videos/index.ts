@@ -16,11 +16,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await db.execute(
         `INSERT INTO videos (title, youtube_id, embed_url, category, views, likes, duration, upload_date, description, is_featured, is_active)
          VALUES (?,?,?,?,?,?,?,?,?,?,1)`,
-        [title, youtube_id, embed_url, category, views, likes, duration, upload_date, description, is_featured ? 1 : 0]
+        [title, youtube_id, embed_url, category, views || 0, likes || 0, duration || null, upload_date || null, description || null, is_featured ? 1 : 0]
       );
       return res.status(201).json({ success: true });
-    } catch (err: any) {
-      return res.status(500).json({ detail: err.message });
+    } catch (err) {
+      return res.status(500).json({ detail: err instanceof Error ? err.message : "Unknown error" });
     }
   }
 

@@ -9,8 +9,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const images = await db.execute("SELECT * FROM gallery_images ORDER BY \"order\"");
       return res.json(images.rows);
-    } catch (error: any) {
-      return res.status(500).json({ detail: error.message });
+    } catch (error) {
+      return res.status(500).json({ detail: error instanceof Error ? error.message : "Unknown error" });
     }
   }
 
@@ -25,8 +25,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         [url, alt_text, order || 0]
       );
       return res.status(201).json({ success: true });
-    } catch (error: any) {
-      return res.status(500).json({ detail: error.message });
+    } catch (error) {
+      return res.status(500).json({ detail: error instanceof Error ? error.message : "Unknown error" });
     }
   }
 

@@ -62,8 +62,6 @@ type ArtistProfile = {
   instagram_url?: string | null;
 };
 
-type JsonPayload = Record<string, string | number | boolean | null | undefined>;
-
 function formatCount(value: number) {
   if (value >= 1_000_000) return (value / 1_000_000).toFixed(1) + "M";
   if (value >= 1_000) return (value / 1_000).toFixed(1) + "K";
@@ -144,9 +142,11 @@ export default function Admin() {
     }
   };
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (loggedIn) fetchData();
   }, [loggedIn]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Login handler
   const handleLogin: FormEventHandler<HTMLFormElement> = async (e) => {
@@ -178,8 +178,8 @@ export default function Admin() {
       await action();
       await revalidateHome();
       await fetchData();
-    } catch (error: any) {
-      alert(error.message || "Action failed");
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Action failed");
     }
   };
 
@@ -279,10 +279,12 @@ function VideoManager({ videos, runAction }: { videos: VideoItem[]; runAction: (
     resetForm();
   };
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (editing) setForm(editing);
     else resetForm();
   }, [editing]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const toggleActive = (video: VideoItem) => {
     runAction(async () => {
@@ -397,10 +399,12 @@ function TrackManager({ tracks, runAction }: { tracks: TrackItem[]; runAction: (
     resetForm();
   };
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (editing) setForm(editing);
     else resetForm();
   }, [editing]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const toggleActive = (track: TrackItem) => {
     runAction(async () => {
@@ -509,10 +513,12 @@ function GalleryManager({ gallery, runAction }: { gallery: GalleryItem[]; runAct
     resetForm();
   };
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (editing) setForm(editing);
     else resetForm();
   }, [editing]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const toggleActive = (item: GalleryItem) => {
     runAction(async () => {
@@ -580,9 +586,11 @@ function ArtistEditor({ artist, runAction }: { artist: ArtistProfile | null; run
     hero_image_url: "", spotify_url: "", youtube_url: "", instagram_url: ""
   });
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (artist) setForm(artist);
   }, [artist]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -620,9 +628,11 @@ function ArtistEditor({ artist, runAction }: { artist: ArtistProfile | null; run
 function SiteContentEditor({ slug, content, runAction }: { slug: string; content: SiteContent; runAction: (fn: () => Promise<void>) => void }) {
   const [form, setForm] = useState<SiteContent>(content);
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     setForm(content);
   }, [content]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

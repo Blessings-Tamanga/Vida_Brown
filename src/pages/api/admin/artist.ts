@@ -16,12 +16,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (existing.rows.length > 0) {
       await db.execute(
         `UPDATE artists SET name=?, title=?, bio=?, followers=?, hero_image_url=?, spotify_url=?, youtube_url=?, instagram_url=? WHERE id=?`,
-        [name, title, bio, followers, hero_image_url, spotify_url, youtube_url, instagram_url, existing.rows[0].id]
+        [name || null, title || null, bio || null, followers || 0, hero_image_url || null, spotify_url || null, youtube_url || null, instagram_url || null, existing.rows[0].id]
       );
     } else {
       await db.execute(
         `INSERT INTO artists (name, title, bio, followers, hero_image_url, spotify_url, youtube_url, instagram_url) VALUES (?,?,?,?,?,?,?,?)`,
-        [name, title, bio, followers, hero_image_url, spotify_url, youtube_url, instagram_url]
+        [name || null, title || null, bio || null, followers || 0, hero_image_url || null, spotify_url || null, youtube_url || null, instagram_url || null]
       );
     }
     return res.json({ success: true });
