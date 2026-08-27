@@ -63,22 +63,36 @@ type SiteContentRow = {
 };
 
 export async function getStaticProps() {
-  const artist = await db.execute("SELECT * FROM artists LIMIT 1");
-  const videos = await db.execute("SELECT * FROM videos WHERE is_active IS NOT 0 ORDER BY created_at DESC LIMIT 10");
-  const tracks = await db.execute("SELECT * FROM tracks WHERE is_active IS NOT 0 ORDER BY track_number LIMIT 10");
-  const gallery = await db.execute(`SELECT * FROM gallery_images WHERE is_active IS NOT 0 ORDER BY "order"`);
-  const siteContent = await db.execute("SELECT * FROM site_content ORDER BY slug");
+  try {
+    const artist = await db.execute("SELECT * FROM artists LIMIT 1");
+    const videos = await db.execute("SELECT * FROM videos WHERE is_active IS NOT 0 ORDER BY created_at DESC LIMIT 10");
+    const tracks = await db.execute("SELECT * FROM tracks WHERE is_active IS NOT 0 ORDER BY track_number LIMIT 10");
+    const gallery = await db.execute(`SELECT * FROM gallery_images WHERE is_active IS NOT 0 ORDER BY "order"`);
+    const siteContent = await db.execute("SELECT * FROM site_content ORDER BY slug");
 
-  return {
-    props: {
-      artist: (artist.rows[0] as unknown as ArtistRow) || null,
-      videos: videos.rows as unknown as VideoRow[],
-      tracks: tracks.rows as unknown as TrackRow[],
-      gallery: gallery.rows as unknown as GalleryRow[],
-      siteContent: siteContent.rows as unknown as SiteContentRow[],
-    },
-    revalidate: 3600,
-  };
+    return {
+      props: {
+        artist: (artist.rows[0] as unknown as ArtistRow) || null,
+        videos: videos.rows as unknown as VideoRow[],
+        tracks: tracks.rows as unknown as TrackRow[],
+        gallery: gallery.rows as unknown as GalleryRow[],
+        siteContent: siteContent.rows as unknown as SiteContentRow[],
+      },
+      revalidate: 3600,
+    };
+  } catch (error) {
+    console.error("Homepage data fetch failed", error);
+    return {
+      props: {
+        artist: null,
+        videos: [],
+        tracks: [],
+        gallery: [],
+        siteContent: [],
+      },
+      revalidate: 60,
+    };
+  }
 }
 
 function formatCount(value: number) {
@@ -140,6 +154,8 @@ export default function Home({
   }, []);
 
   const closeMobile = () => setMobileOpen(false);
+
+  const [heroImgError, setHeroImgError] = useState(false);
 
   const handleNewsletter = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -242,8 +258,8 @@ export default function Home({
             </div>
             <div className="hero-image">
               <div className="hero-image-wrapper">
-                {heroContent?.image_url || artist?.hero_image_url ? (
-                  <img src={heroContent?.image_url || artist?.hero_image_url || ""} alt="Artist portrait" />
+                {!heroImgError && (heroContent?.image_url || artist?.hero_image_url) ? (
+                  <img src={heroContent?.image_url || artist?.hero_image_url || ""} alt="Artist portrait" onError={() => setHeroImgError(true)} />
                 ) : (
                   <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-secondary)", fontSize: 14 }}>
                     No image uploaded
@@ -442,7 +458,7 @@ export default function Home({
               {gallery.length > 0 ? (
                 gallery.map((img) => (
                   <div key={img.id} className="item">
-                    <img src={img.url} alt={img.alt_text} loading="lazy" />
+                    <img src={img.url} alt={img.alt_text} loading="lazy" onError={(e) => { e.currentTarget.style.display = "none"; }} />
                   </div>
                 ))
               ) : (

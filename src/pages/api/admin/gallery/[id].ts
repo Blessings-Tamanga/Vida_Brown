@@ -16,10 +16,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const { permanent } = req.body;
       if (permanent) {
-        await db.execute("DELETE FROM gallery_images WHERE id = ?", [id]);
+        const result = await db.execute("DELETE FROM gallery_images WHERE id = ?", [id]);
+        if (result.rowsAffected === 0) return res.status(404).json({ detail: "Gallery image not found" });
         return res.json({ deleted: true });
       } else {
-        await db.execute("UPDATE gallery_images SET is_active = 0 WHERE id = ?", [id]);
+        const result = await db.execute("UPDATE gallery_images SET is_active = 0 WHERE id = ?", [id]);
+        if (result.rowsAffected === 0) return res.status(404).json({ detail: "Gallery image not found" });
         return res.json({ deactivated: true });
       }
     } catch (error) {
@@ -30,10 +32,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === "PUT") {
     const { url, alt_text, order, is_active } = req.body;
     try {
-      await db.execute(
+      const result = await db.execute(
         `UPDATE gallery_images SET url=?, alt_text=?, "order"=?, is_active=? WHERE id=?`,
         [url || null, alt_text || null, order || 0, is_active ?? 1, id]
       );
+      if (result.rowsAffected === 0) return res.status(404).json({ detail: "Gallery image not found" });
       return res.json({ success: true });
     } catch (error) {
       return res.status(500).json({ detail: error instanceof Error ? error.message : "Unknown error" });

@@ -80,9 +80,14 @@ async function safeJson(res: Response) {
 async function revalidateHome() {
   const token = localStorage.getItem("admin_token");
   try {
-    await fetch(`/api/revalidate?secret=${token}`);
+    const res = await fetch("/api/revalidate", { headers: { "x-admin-token": token || "" } });
+    if (!res.ok) {
+      const result = await safeJson(res);
+      throw new Error(result.detail || result.message || "Could not refresh the homepage");
+    }
   } catch (e) {
     console.warn("Revalidation failed", e);
+    throw e;
   }
 }
 
@@ -624,7 +629,7 @@ function GalleryManager({ gallery, runAction, addToast }: { gallery: GalleryItem
       <div className="gallery-grid" style={{ marginTop: 0 }}>
         {gallery.map(g => (
           <div key={g.id} className="item" style={{ position: "relative", opacity: g.is_active ? 1 : 0.5 }}>
-            <img src={g.url} alt={g.alt_text} loading="lazy" />
+            <img src={g.url} alt={g.alt_text} loading="lazy" onError={(e) => { e.currentTarget.style.display = "none"; }} />
             <div style={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 4 }}>
               <button onClick={() => setEditing(g)} className="btn btn-outline btn-sm">Edit</button>
               <button onClick={() => toggleActive(g)} className="btn btn-outline btn-sm">{g.is_active ? "Hide" : "Show"}</button>

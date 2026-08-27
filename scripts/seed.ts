@@ -13,7 +13,7 @@ async function seed() {
       "Singer • Songwriter • Producer",
       "Born Vida Ezra Gérmaño, known as Vida (Veeda) - a Malawian artist creating music, arts, and culture content.",
       82,
-      "/Image Jul 22, 2026, 12_54_27 AM.png",
+      null,
       "https://open.spotify.com/artist/3ihbWDeubJO4XmeZlCGqZL",
       "https://www.youtube.com/@VidaBrownOfficial",
       "https://www.instagram.com/vidabrownofficial",
@@ -58,7 +58,7 @@ async function seed() {
   // Site content
   await db.execute(
     `INSERT INTO site_content (slug, title, subtitle, body, image_url, cta_primary_label, cta_primary_url, cta_secondary_label, cta_secondary_url)
-     VALUES ('hero', 'Vida Brown', 'Singer • Songwriter • Producer', 'Born Vida Ezra Gérmaño...', '/Image Jul 22, 2026, 12_54_27 AM.png', 'Listen on Spotify', 'https://open.spotify.com/artist/3ihbWDeubJO4XmeZlCGqZL', 'YouTube Channel', 'https://www.youtube.com/@VidaBrownOfficial')`
+     VALUES ('hero', 'Vida Brown', 'Singer • Songwriter • Producer', 'Born Vida Ezra Gérmaño...', null, 'Listen on Spotify', 'https://open.spotify.com/artist/3ihbWDeubJO4XmeZlCGqZL', 'YouTube Channel', 'https://www.youtube.com/@VidaBrownOfficial')`
   );
   await db.execute(
     `INSERT INTO site_content (slug, title, body)

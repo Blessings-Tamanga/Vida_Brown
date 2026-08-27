@@ -16,10 +16,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const { permanent } = req.body;
       if (permanent) {
-        await db.execute("DELETE FROM videos WHERE id = ?", [id]);
+        const result = await db.execute("DELETE FROM videos WHERE id = ?", [id]);
+        if (result.rowsAffected === 0) return res.status(404).json({ detail: "Video not found" });
         return res.json({ success: true });
       } else {
-        await db.execute("UPDATE videos SET is_active = 0 WHERE id = ?", [id]);
+        const result = await db.execute("UPDATE videos SET is_active = 0 WHERE id = ?", [id]);
+        if (result.rowsAffected === 0) return res.status(404).json({ detail: "Video not found" });
         return res.json({ deactivated: true });
       }
     } catch (error) {
@@ -30,10 +32,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === "PUT") {
     const { title, youtube_id, embed_url, category, views, likes, duration, upload_date, description, is_featured, is_active } = req.body;
     try {
-      await db.execute(
+      const result = await db.execute(
         `UPDATE videos SET title=?, youtube_id=?, embed_url=?, category=?, views=?, likes=?, duration=?, upload_date=?, description=?, is_featured=?, is_active=? WHERE id=?`,
         [title, youtube_id, embed_url, category, views || 0, likes || 0, duration || null, upload_date || null, description || null, is_featured ? 1 : 0, is_active ?? 1, id]
       );
+      if (result.rowsAffected === 0) return res.status(404).json({ detail: "Video not found" });
       return res.json({ success: true });
     } catch (error) {
       return res.status(500).json({ detail: error instanceof Error ? error.message : "Unknown error" });

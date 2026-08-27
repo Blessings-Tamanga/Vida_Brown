@@ -6,8 +6,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!isAdmin(req, res)) return;
 
   if (req.method === "GET") {
-    const videos = await db.execute("SELECT * FROM videos ORDER BY created_at DESC");
-    return res.json(videos.rows);
+    try {
+      const videos = await db.execute("SELECT * FROM videos ORDER BY created_at DESC");
+      return res.json(videos.rows);
+    } catch (error) {
+      return res.status(500).json({ detail: error instanceof Error ? error.message : "Could not load videos" });
+    }
   }
 
   if (req.method === "POST") {
