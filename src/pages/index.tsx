@@ -156,6 +156,8 @@ export default function Home({
   const closeMobile = () => setMobileOpen(false);
 
   const [heroImgError, setHeroImgError] = useState(false);
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [lightboxImg, setLightboxImg] = useState<string | null>(null);
 
   const handleNewsletter = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -245,16 +247,18 @@ export default function Home({
               <h1>{heroContent?.title || artist?.name || ""}</h1>
               <h2>{heroContent?.subtitle || artist?.title || ""}</h2>
               <p>{heroContent?.body || artist?.bio || ""}</p>
-              {(heroContent?.cta_primary_url || artist?.spotify_url) && (
-                <a href={heroContent?.cta_primary_url || artist?.spotify_url || ""} target="_blank" className="btn btn-primary">
-                  <span className="material-symbols-outlined">music_note</span> {heroContent?.cta_primary_label || "Listen on Spotify"}
-                </a>
-              )}
-              {(heroContent?.cta_secondary_url || artist?.youtube_url) && (
-                <a href={heroContent?.cta_secondary_url || artist?.youtube_url || ""} target="_blank" className="btn btn-outline">
-                  <span className="material-symbols-outlined">subscriptions</span> {heroContent?.cta_secondary_label || "YouTube Channel"}
-                </a>
-              )}
+              <div className="hero-buttons">
+                {(heroContent?.cta_primary_url || artist?.spotify_url) && (
+                  <a href={heroContent?.cta_primary_url || artist?.spotify_url || ""} target="_blank" className="btn btn-primary">
+                    <span className="material-symbols-outlined">music_note</span> {heroContent?.cta_primary_label || "Listen on Spotify"}
+                  </a>
+                )}
+                {(heroContent?.cta_secondary_url || artist?.youtube_url) && (
+                  <a href={heroContent?.cta_secondary_url || artist?.youtube_url || ""} target="_blank" className="btn btn-outline">
+                    <span className="material-symbols-outlined">subscriptions</span> {heroContent?.cta_secondary_label || "YouTube Channel"}
+                  </a>
+                )}
+              </div>
             </div>
             <div className="hero-image">
               <div className="hero-image-wrapper">
@@ -456,7 +460,7 @@ export default function Home({
             </div>
             <div className="gallery-grid">
               {gallery.length > 0 ? (
-                gallery.map((img) => (
+                gallery.slice(0, 6).map((img) => (
                   <div key={img.id} className="item">
                     <img src={img.url} alt={img.alt_text} loading="lazy" onError={(e) => { e.currentTarget.style.display = "none"; }} />
                   </div>
@@ -467,8 +471,38 @@ export default function Home({
                 </div>
               )}
             </div>
+            {gallery.length > 6 && (
+              <div style={{ textAlign: "center", marginTop: 32 }}>
+                <button className="btn btn-outline" onClick={() => setGalleryOpen(true)}>View more</button>
+              </div>
+            )}
           </div>
         </section>
+
+        {/* Gallery Modal */}
+        {galleryOpen && (
+          <div className="gallery-modal-overlay" onClick={() => setGalleryOpen(false)}>
+            <div className="gallery-modal" onClick={(e) => e.stopPropagation()}>
+              <button className="gallery-modal-close" onClick={() => setGalleryOpen(false)}>×</button>
+              <h3 style={{ marginBottom: 24 }}>Gallery</h3>
+              <div className="gallery-modal-grid">
+                {gallery.map((img) => (
+                  <div key={img.id} className="gallery-modal-item" onClick={() => { setLightboxImg(img.url); }}>
+                    <img src={img.url} alt={img.alt_text} loading="lazy" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Lightbox */}
+        {lightboxImg && (
+          <div className="lightbox-overlay" onClick={() => setLightboxImg(null)}>
+            <button className="lightbox-close" onClick={() => setLightboxImg(null)}>×</button>
+            <img src={lightboxImg} alt="Gallery preview" className="lightbox-img" onClick={(e) => e.stopPropagation()} />
+          </div>
+        )}
 
         {/* Music Section */}
         <section className="section bg-surface" id="music-section">

@@ -267,10 +267,66 @@ html:not(.dark) .badge-outline { background: rgba(0,0,0,0.1); color: black; bord
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 16px;
 }
-.gallery-grid .item { border-radius: 16px; overflow: hidden; aspect-ratio: 1; }
+.gallery-grid .item { border-radius: 16px; overflow: hidden; aspect-ratio: 1; cursor: pointer; }
 .gallery-grid .item:first-child { grid-column: span 2; grid-row: span 2; }
 .gallery-grid img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.7s; }
 .gallery-grid .item:hover img { transform: scale(1.1); }
+
+.gallery-modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 200;
+    padding: 24px;
+}
+.gallery-modal {
+    background: var(--bg-container);
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 900px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+}
+.gallery-modal-close {
+    position: absolute; top: 16px; right: 16px;
+    background: none; border: none; color: var(--text-primary);
+    font-size: 32px; cursor: pointer; line-height: 1;
+}
+.gallery-modal-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+}
+.gallery-modal-item {
+    border-radius: 12px;
+    overflow: hidden;
+    aspect-ratio: 1;
+    cursor: pointer;
+}
+.gallery-modal-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+.gallery-modal-item:hover img { transform: scale(1.05); }
+
+.lightbox-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.95);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 300;
+    padding: 24px;
+}
+.lightbox-close {
+    position: absolute; top: 24px; right: 24px;
+    background: none; border: none; color: white;
+    font-size: 40px; cursor: pointer; line-height: 1;
+    z-index: 301;
+}
+.lightbox-img {
+    max-width: 90vw;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 8px;
+}
 
 /* --- Music --- */
 .music-content { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-xl); align-items: center; }

@@ -4,7 +4,6 @@ dotenv.config({ path: ".env.local" });
 async function seed() {
   const { db } = await import("../src/lib/db");
 
-  // Artist
   await db.execute(
     `INSERT INTO artists (id, name, title, bio, followers, hero_image_url, spotify_url, youtube_url, instagram_url)
      VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -12,7 +11,7 @@ async function seed() {
       "Vida Brown",
       "Singer • Songwriter • Producer",
       "Born Vida Ezra Gérmaño, known as Vida (Veeda) - a Malawian artist creating music, arts, and culture content.",
-      82,
+      0,
       null,
       "https://open.spotify.com/artist/3ihbWDeubJO4XmeZlCGqZL",
       "https://www.youtube.com/@VidaBrownOfficial",
@@ -20,7 +19,6 @@ async function seed() {
     ]
   );
 
-  // Videos
   const videos = [
     ["Diamond Platnumz - Happy", "nWA4D9U-q48", "https://www.youtube.com/embed/nWA4D9U-q48", "HIT OR MISS", 10700, 330, "5:26", "Mar 2026", "VIDEO REVIEW", 1],
     ["Adekunle Gold ft Davido", "JqEXp4EJjlw", "https://www.youtube.com/embed/JqEXp4EJjlw", "HIT OR MISS", 210, 48, "5:06", "Feb 2026", "Reviewing collaboration", 0],
@@ -33,7 +31,6 @@ async function seed() {
     );
   }
 
-  // Tracks
   const tracks = [
     [1, "Umbrella", "Vida Brown", null, "2024", 12400, "Single", 1],
     [2, "PON ME (Everything)", "Vida Brown", null, "2025", 8200, "Single", 1],
@@ -45,17 +42,6 @@ async function seed() {
     );
   }
 
-  // Gallery
-  await db.execute(
-    'INSERT INTO gallery_images (url, alt_text, "order", is_active) VALUES (?,?,?,1)',
-    ["https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=900", "Vida Brown on stage", 1]
-  );
-  await db.execute(
-    'INSERT INTO gallery_images (url, alt_text, "order", is_active) VALUES (?,?,?,1)',
-    ["https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=900", "Studio session", 2]
-  );
-
-  // Site content
   await db.execute(
     `INSERT INTO site_content (slug, title, subtitle, body, image_url, cta_primary_label, cta_primary_url, cta_secondary_label, cta_secondary_url)
      VALUES ('hero', 'Vida Brown', 'Singer • Songwriter • Producer', 'Born Vida Ezra Gérmaño...', null, 'Listen on Spotify', 'https://open.spotify.com/artist/3ihbWDeubJO4XmeZlCGqZL', 'YouTube Channel', 'https://www.youtube.com/@VidaBrownOfficial')`
