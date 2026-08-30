@@ -27,6 +27,8 @@ type VideoRow = {
   description: string;
   is_featured: number;
   is_active: number;
+  show_order: number;
+  trending_order: number;
 };
 
 type TrackRow = {
@@ -63,36 +65,58 @@ type SiteContentRow = {
 };
 
 export async function getStaticProps() {
-  try {
-    const artist = await db.execute("SELECT * FROM artists LIMIT 1");
-    const videos = await db.execute("SELECT * FROM videos WHERE is_active IS NOT 0 ORDER BY created_at DESC LIMIT 10");
-    const tracks = await db.execute("SELECT * FROM tracks WHERE is_active IS NOT 0 ORDER BY track_number LIMIT 10");
-    const gallery = await db.execute(`SELECT * FROM gallery_images WHERE is_active IS NOT 0 ORDER BY "order"`);
-    const siteContent = await db.execute("SELECT * FROM site_content ORDER BY slug");
+  let artist: ArtistRow | null = null;
+  let videos: VideoRow[] = [];
+  let tracks: TrackRow[] = [];
+  let gallery: GalleryRow[] = [];
+  let siteContent: SiteContentRow[] = [];
+  let failed = false;
 
-    return {
-      props: {
-        artist: (artist.rows[0] as unknown as ArtistRow) || null,
-        videos: videos.rows as unknown as VideoRow[],
-        tracks: tracks.rows as unknown as TrackRow[],
-        gallery: gallery.rows as unknown as GalleryRow[],
-        siteContent: siteContent.rows as unknown as SiteContentRow[],
-      },
-      revalidate: 3600,
-    };
-  } catch (error) {
-    console.error("Homepage data fetch failed", error);
-    return {
-      props: {
-        artist: null,
-        videos: [],
-        tracks: [],
-        gallery: [],
-        siteContent: [],
-      },
-      revalidate: 60,
-    };
+  try {
+    const a = await db.execute("SELECT * FROM artists LIMIT 1");
+    artist = (a.rows[0] as unknown as ArtistRow) || null;
+  } catch {
+    failed = true;
   }
+
+  try {
+    const v = await db.execute("SELECT * FROM videos WHERE is_active IS NOT 0 ORDER BY created_at DESC LIMIT 10");
+    videos = v.rows as unknown as VideoRow[];
+  } catch {
+    failed = true;
+  }
+
+  try {
+    const t = await db.execute("SELECT * FROM tracks WHERE is_active IS NOT 0 ORDER BY track_number LIMIT 10");
+    tracks = t.rows as unknown as TrackRow[];
+  } catch {
+    failed = true;
+  }
+
+  try {
+    const g = await db.execute(`SELECT * FROM gallery_images WHERE is_active IS NOT 0 ORDER BY "order"`);
+    gallery = g.rows as unknown as GalleryRow[];
+  } catch {
+    failed = true;
+  }
+
+  try {
+    const c = await db.execute("SELECT * FROM site_content ORDER BY slug");
+    siteContent = c.rows as unknown as SiteContentRow[];
+  } catch {
+    failed = true;
+  }
+
+  return {
+    props: {
+      artist,
+      videos,
+      tracks,
+      gallery,
+      siteContent,
+    },
+    revalidate: failed ? 60 : 3600,
+  };
 }
 
 function formatCount(value: number) {
@@ -181,8 +205,8 @@ export default function Home({
   const aboutContent = siteContent.find((item) => item.slug === "about");
 
   const featuredVideo = videos.find((video) => video.is_featured) || videos[0];
-  const trendingVideos = videos.slice(0, 3);
-  const showVideos = videos;
+  const trendingVideos = videos.filter((video) => video.trending_order > 0).sort((a, b) => a.trending_order - b.trending_order).slice(0, 3);
+  const showVideos = videos.filter((video) => video.show_order > 0).sort((a, b) => a.show_order - b.show_order);
 
   return (
     <>

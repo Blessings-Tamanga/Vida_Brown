@@ -30,13 +30,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "PUT") {
-    const { title, youtube_id, embed_url, category, views, likes, duration, upload_date, description, is_featured, is_active } = req.body;
+    const { title, youtube_id, embed_url, category, views, likes, duration, upload_date, description, is_featured, is_active, show_order, trending_order } = req.body;
     try {
-      const result = await db.execute(
-        `UPDATE videos SET title=?, youtube_id=?, embed_url=?, category=?, views=?, likes=?, duration=?, upload_date=?, description=?, is_featured=?, is_active=? WHERE id=?`,
-        [title, youtube_id, embed_url, category, views || 0, likes || 0, duration || null, upload_date || null, description || null, is_featured ? 1 : 0, is_active ?? 1, id]
+      await db.execute(
+        `UPDATE videos SET title=?, youtube_id=?, embed_url=?, category=?, views=?, likes=?, duration=?, upload_date=?, description=?, is_featured=?, is_active=?, show_order=?, trending_order=? WHERE id=?`,
+        [title, youtube_id, embed_url, category, views || 0, likes || 0, duration || null, upload_date || null, description || null, is_featured ? 1 : 0, is_active ?? 1, show_order || 0, trending_order || 0, id]
       );
-      if (result.rowsAffected === 0) return res.status(404).json({ detail: "Video not found" });
       return res.json({ success: true });
     } catch (error) {
       return res.status(500).json({ detail: error instanceof Error ? error.message : "Unknown error" });

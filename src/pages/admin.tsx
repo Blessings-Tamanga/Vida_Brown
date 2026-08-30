@@ -15,6 +15,8 @@ type VideoItem = {
   description: string;
   is_featured: number;
   is_active: number;
+  show_order: number;
+  trending_order: number;
 };
 
 type TrackItem = {
@@ -291,10 +293,10 @@ export default function Admin() {
 function VideoManager({ videos, runAction }: { videos: VideoItem[]; runAction: (fn: () => Promise<void>) => void }) {
   const [editing, setEditing] = useState<VideoItem | null>(null);
   const [form, setForm] = useState<Partial<VideoItem>>({
-    title: "", youtube_id: "", embed_url: "", category: "", views: 0, likes: 0, duration: "", upload_date: "", description: "", is_featured: 0
+    title: "", youtube_id: "", embed_url: "", category: "", views: 0, likes: 0, duration: "", upload_date: "", description: "", is_featured: 0, show_order: 0, trending_order: 0
   });
 
-  const resetForm = () => setForm({ title: "", youtube_id: "", embed_url: "", category: "", views: 0, likes: 0, duration: "", upload_date: "", description: "", is_featured: 0 });
+  const resetForm = () => setForm({ title: "", youtube_id: "", embed_url: "", category: "", views: 0, likes: 0, duration: "", upload_date: "", description: "", is_featured: 0, show_order: 0, trending_order: 0 });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -380,7 +382,11 @@ function VideoManager({ videos, runAction }: { videos: VideoItem[]; runAction: (
             <input className="admin-input" placeholder="Upload date" value={form.upload_date || ""} onChange={e => setForm({ ...form, upload_date: e.target.value })} />
           </div>
           <textarea className="admin-input" placeholder="Description" value={form.description || ""} onChange={e => setForm({ ...form, description: e.target.value })} />
-          <label><input type="checkbox" checked={!!form.is_featured} onChange={e => setForm({ ...form, is_featured: e.target.checked ? 1 : 0 })} /> Feature on homepage</label>
+          <label><input type="checkbox" checked={!!form.is_featured} onChange={e => setForm({ ...form, is_featured: e.target.checked ? 1 : 0 })} /> Feature on homepage (main hero video)</label>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <input className="admin-input" type="number" placeholder="Show Order (0 = hidden from Latest Shows)" value={form.show_order} onChange={e => setForm({ ...form, show_order: +e.target.value })} />
+            <input className="admin-input" type="number" placeholder="Trending Order (0 = hidden from Trending)" value={form.trending_order} onChange={e => setForm({ ...form, trending_order: +e.target.value })} />
+          </div>
           <div style={{ display: "flex", gap: 12 }}>
             <button type="submit" className="btn btn-primary">{editing ? "Update" : "Save"}</button>
             {editing && <button type="button" className="btn btn-outline" onClick={() => setEditing(null)}>Cancel</button>}

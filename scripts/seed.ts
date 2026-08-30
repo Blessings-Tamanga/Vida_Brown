@@ -20,13 +20,13 @@ async function seed() {
   );
 
   const videos = [
-    ["Diamond Platnumz - Happy", "nWA4D9U-q48", "https://www.youtube.com/embed/nWA4D9U-q48", "HIT OR MISS", 10700, 330, "5:26", "Mar 2026", "VIDEO REVIEW", 1],
-    ["Adekunle Gold ft Davido", "JqEXp4EJjlw", "https://www.youtube.com/embed/JqEXp4EJjlw", "HIT OR MISS", 210, 48, "5:06", "Feb 2026", "Reviewing collaboration", 0],
-    ["AYRA STARR - ALL THE LOVE", "UujBzYu6z0E", "https://www.youtube.com/embed/UujBzYu6z0E", "REACTION", 4600, 92, "5:03", "Feb 2025", "Fresh reaction", 0],
+    ["Diamond Platnumz - Happy", "nWA4D9U-q48", "https://www.youtube.com/embed/nWA4D9U-q48", "HIT OR MISS", 10700, 330, "5:26", "Mar 2026", "VIDEO REVIEW", 1, 1, 1],
+    ["Adekunle Gold ft Davido", "JqEXp4EJjlw", "https://www.youtube.com/embed/JqEXp4EJjlw", "HIT OR MISS", 210, 48, "5:06", "Feb 2026", "Reviewing collaboration", 0, 2, 0],
+    ["AYRA STARR - ALL THE LOVE", "UujBzYu6z0E", "https://www.youtube.com/embed/UujBzYu6z0E", "REACTION", 4600, 92, "5:03", "Feb 2025", "Fresh reaction", 0, 3, 0],
   ];
   for (const v of videos) {
     await db.execute(
-      "INSERT INTO videos (title, youtube_id, embed_url, category, views, likes, duration, upload_date, description, is_featured, is_active) VALUES (?,?,?,?,?,?,?,?,?,?,1)",
+      "INSERT INTO videos (title, youtube_id, embed_url, category, views, likes, duration, upload_date, description, is_featured, is_active, show_order, trending_order) VALUES (?,?,?,?,?,?,?,?,?,?,1,?,?)",
       v
     );
   }

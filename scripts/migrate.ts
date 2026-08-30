@@ -39,6 +39,8 @@ async function migrate() {
       description TEXT,
       is_featured INTEGER DEFAULT 0,
       is_active INTEGER DEFAULT 1,
+      show_order INTEGER DEFAULT 0,
+      trending_order INTEGER DEFAULT 0,
       created_at TEXT DEFAULT (datetime('now'))
     )`,
 
