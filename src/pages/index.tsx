@@ -205,7 +205,6 @@ export default function Home({
   const aboutContent = siteContent.find((item) => item.slug === "about");
 
   const featuredVideo = videos.find((video) => video.is_featured) || videos[0];
-  const trendingVideos = videos.filter((video) => video.trending_order > 0).sort((a, b) => a.trending_order - b.trending_order).slice(0, 3);
   const showVideos = videos.filter((video) => video.show_order > 0).sort((a, b) => a.show_order - b.show_order);
 
   return (
@@ -349,38 +348,6 @@ export default function Home({
             )}
 
             {!featuredVideo && (
-              <div className="glass-card" style={{ padding: 48, textAlign: "center" }}>
-                <p style={{ color: "var(--text-secondary)" }}>No videos yet. Add videos from the admin panel.</p>
-              </div>
-            )}
-
-            {/* Trending grid (3 videos) */}
-            {trendingVideos.length > 0 ? (
-              <div className="video-grid">
-                {trendingVideos.map((video) => (
-                  <div key={video.id} className="glass-card video-card">
-                    <div className="video-wrapper">
-                      <iframe src={video.embed_url} title={video.title} style={{ border: 0 }} allowFullScreen loading="lazy" />
-                    </div>
-                    <div className="video-card-info">
-                      <div className="badges">
-                        <span className={`badge ${video.category === "REACTION" ? "badge-secondary" : "badge-primary"}`}>
-                          {video.category}
-                        </span>
-                        <span className="meta-time">• {video.duration}</span>
-                      </div>
-                      <h4>{video.title}</h4>
-                      <p>{video.description}</p>
-                      <div className="video-stats">
-                        <span>{formatCount(video.views)} views</span>
-                        <span>•</span>
-                        <span>{video.upload_date}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
               <div className="glass-card" style={{ padding: 48, textAlign: "center" }}>
                 <p style={{ color: "var(--text-secondary)" }}>No videos yet. Add videos from the admin panel.</p>
               </div>
