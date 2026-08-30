@@ -1,8 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { isAdmin } from "@/lib/adminAuth";
-import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
-import { randomUUID } from "node:crypto";
 
 export const config = {
   api: {
@@ -56,13 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ detail: "Empty file" });
     }
 
-    const extension = mimeType === "image/jpeg" || mimeType === "image/jpg" ? "jpg" : mimeType.split("/")[1];
-    const uploadDirectory = path.join(process.cwd(), "public", "uploads");
-    const storedFilename = `${randomUUID()}.${extension}`;
-    await mkdir(uploadDirectory, { recursive: true });
-    await writeFile(path.join(uploadDirectory, storedFilename), buffer);
-
-    return res.status(200).json({ url: `/uploads/${storedFilename}` });
+    return res.status(200).json({ url: dataUrl });
   } catch (error) {
     return res.status(500).json({ detail: error instanceof Error ? error.message : "Upload failed" });
   }
